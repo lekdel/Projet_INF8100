@@ -21,6 +21,8 @@ jobs:
       uses: sonarsource/sonarcloud-github-action@v3.1.0
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_PROJECT_KEY: Projet_INF8100
+        SONAR_ORGANIZATION: lekdel
 
 
   security:
