@@ -21,7 +21,7 @@ jobs:
       uses: sonarsource/sonarcloud-github-action@v3.1.0
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+        SONAR_PROJECT_KEY: Project_LOG8100
         SONAR_ORGANIZATION: lekdel
 
 
