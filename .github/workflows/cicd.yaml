@@ -20,8 +20,6 @@ jobs:
     - name: SonarCloud Scan
       uses: sonarsource/sonarcloud-github-action@v3.1.0
       env:
-        SONAR_PROJECT_KEY: Project_LOG8100
-        SONAR_ORGANIZATION: lekdel
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
 
