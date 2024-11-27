@@ -45,7 +45,9 @@ jobs:
         uses: snyk/actions@v0.6.0
         with:
           args: test --file=requirements.txt --package-manager=pip
-        - name: Verify Snyk CLI
-          run: snyk --version
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      - name: Verify Snyk CLI
+        run: snyk --version
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
