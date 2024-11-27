@@ -17,15 +17,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.7'
-      - name: Set up Java 17
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '17'
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -34,7 +25,7 @@ jobs:
         uses: sonarsource/sonarcloud-github-action@v1
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          JAVA_HOME: /opt/hostedtoolcache/Java_17
+
 
   security:
     name: Snyk-analysis
@@ -51,8 +42,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions@master
+        uses: snyk/actions@v0.6.0
         with:
           args: test --file=requirements.txt --package-manager=pip
+        - name: Verify Snyk CLI
+          run: snyk --version
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
