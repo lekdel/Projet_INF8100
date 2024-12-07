@@ -88,9 +88,8 @@ jobs:
       - name: Generate Clair report
         run: |
           docker run --rm \
-            -v ${{ github.workspace }}/workspace:/workspace quay.io/projectquay/clairctl:latest clairctl \
+            -v ${{ github.workspace }}/workspace:/workspace quay.io/projectquay/clair:4.7.2 clairctl \
             report "${{ secrets.DOCKER_IMAGE_NAME }}:latest" --format json > ${{ github.workspace }}/workspace/clair-report.json
-
 
       - name: Upload Clair report
         uses: actions/upload-artifact@v3
