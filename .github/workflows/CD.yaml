@@ -21,47 +21,11 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t "${{ secrets.DOCKER_IMAGE_NAME }}:latest" .
+
       - name: Push Docker image
         run: docker push "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
 
   trivy_scan:
-    needs: build-and-push 
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Pull Docker image
-        run: docker pull "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
-
-      - name: Create workspace directory
-        run: mkdir -p ${{ github.workspace }}/workspace
-
-      - name: Run Trivy - Clear cache
-        run: docker run --rm -v ${{ github.workspace }}/.trivycache:/root/.cache/ aquasec/trivy clean --scan-cache
-
-      - name: Run Trivy - Download DB
-        run: docker run --rm -v ${{ github.workspace }}/.trivycache:/root/.cache/ aquasec/trivy image --download-db-only
-
-      - name: Run Trivy - Generate report
-        run: docker run --rm -v ${{ github.workspace }}/.trivycache:/root/.cache/ -v ${{ github.workspace }}:/workspace aquasec/trivy image --exit-code 0 --format template --template "@/contrib/gitlab.tpl" --output "/workspace/trivy-report.json" "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
-
-      - name: Run Trivy - Critical severity
-        run: docker run --rm -v ${{ github.workspace }}/.trivycache:/root/.cache/ aquasec/trivy image --exit-code 0 --severity CRITICAL "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
-
-      - name: Upload Trivy report
-        uses: actions/upload-artifact@v3
-        with:
-          name: trivy-report
-          path: trivy-report.json
-
-  clair_scan:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
@@ -77,38 +41,49 @@ jobs:
       - name: Pull Docker image
         run: docker pull "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
 
-      - name: Run Clair in Combo Mode
+      - name: Run Trivy - Generate report
         run: |
-          docker network create clair_network || true
-          docker run -d --rm --name clair --network clair_network \
+          docker run --rm -v ${{ github.workspace }}/.trivycache:/root/.cache/ \
+            -v ${{ github.workspace }}:/workspace aquasec/trivy image --exit-code 0 \
+            --format json --output "/workspace/trivy-report.json" "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
+
+      - name: Upload Trivy report
+        uses: actions/upload-artifact@v3
+        with:
+          name: trivy-report
+          path: trivy-report.json
+
+  clair_scan:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Create Clair network
+        run: docker network create clair_network
+
+      - name: Run Clair service
+        run: |
+          docker run -d --name clair --network clair_network \
             quay.io/projectquay/clair:4.7.2 clair -mode combo
-          sleep 15 # Wait for Clair to initialize
 
-      - name: Verify Clair is Running
-        run: docker ps -a
+      - name: Wait for Clair to start
+        run: sleep 15 # Wait for Clair to initialize
 
-      - name: Get Clair IP
+      - name: Analyze Docker image with Clair
         run: |
-          CLAIR_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' clair)
-          echo "CLAIR_IP=$CLAIR_IP" >> $GITHUB_ENV
+          curl -X POST -H "Content-Type: application/json" \
+            -d '{"image":"docker://${{ secrets.DOCKER_IMAGE_NAME }}:latest"}' \
+            http://localhost:6060/v1/indexer/api/v1/index_report
 
-      - name: Generate Clair Report
+      - name: Fetch Clair report
         run: |
-          docker run --rm --network clair_network curlimages/curl:latest \
-            curl -X POST -H "Content-Type: application/json" \
-            -d '{"manifest":{"hash":"sha256:'"${{ github.sha }}"'","layers":[]}}' \
-            http://${{ env.CLAIR_IP }}:6060/v1/indexer/api/v1/index_report
-          docker run --rm --network clair_network curlimages/curl:latest \
-            curl -X GET http://${{ env.CLAIR_IP }}:6060/v1/indexer/api/v1/index_report/sha256:${{ github.sha }} \
-            -o ${{ github.workspace }}/clair-report.json
+          curl -X GET http://localhost:6060/v1/indexer/api/v1/index_report \
+            -o clair-report.json
 
-      - name: Upload Clair Report
+      - name: Upload Clair report
         uses: actions/upload-artifact@v3
         with:
           name: clair-report
-          path: ${{ github.workspace }}/clair-report.json
-
-
-
-
-
+          path: clair-report.json
