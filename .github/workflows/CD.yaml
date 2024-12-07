@@ -62,41 +62,41 @@ jobs:
           path: trivy-report.json
 
   clair_scan:
-  needs: build-and-push
-  runs-on: ubuntu-latest
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Pull Docker image
-      run: docker pull "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
+      - name: Pull Docker image
+        run: docker pull "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
 
-    - name: Run Clair service
-      run: |
-        docker network create clair_network
-        docker run -d --rm --name clair --network clair_network \
-          -p 6060:6060 -p 6061:6061 quay.io/projectquay/clair:latest
+      - name: Run Clair service
+        run: |
+          docker network create clair_network
+          docker run -d --rm --name clair --network clair_network \
+            -p 6060:6060 -p 6061:6061 quay.io/projectquay/clair:latest
 
-    - name: Create workspace directory
-      run: mkdir -p ${{ github.workspace }}/workspace
+      - name: Create workspace directory
+        run: mkdir -p ${{ github.workspace }}/workspace
 
-    - name: Generate Clair report
-      run: |
-        docker run --rm --network clair_network \
-          -v ${{ github.workspace }}/workspace:/workspace \
-          quay.io/projectquay/clairctl:latest \
-          clairctl --config http://clair:6060 \
-          report "${{ secrets.DOCKER_IMAGE_NAME }}:latest" --format json > ${{ github.workspace }}/workspace/clair-report.json
+      - name: Generate Clair report
+        run: |
+          docker run --rm --network clair_network \
+            -v ${{ github.workspace }}/workspace:/workspace \
+            quay.io/projectquay/clairctl:latest \
+            clairctl --config http://clair:6060 \
+            report "${{ secrets.DOCKER_IMAGE_NAME }}:latest" --format json > ${{ github.workspace }}/workspace/clair-report.json
 
-    - name: Upload Clair report
-      uses: actions/upload-artifact@v3
-      with:
-        name: clair-report
-        path: ${{ github.workspace }}/workspace/clair-report.json
+      - name: Upload Clair report
+        uses: actions/upload-artifact@v3
+        with:
+          name: clair-report
+          path: ${{ github.workspace }}/workspace/clair-report.json
 
