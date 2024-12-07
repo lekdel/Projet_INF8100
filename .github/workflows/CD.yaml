@@ -79,7 +79,7 @@ jobs:
 
       - name: Run Clair combo mode
         run: |
-          docker run -d --rm --name clair -p 6060:6060 -p 6061:6061 quay.io/projectquay/clair:4.7.2 clair -mode combo
+          docker run -d --rm --name clair -p 6060:6060 -p 6061:6061 quay.io/projectquay/clair:latest clair -mode combo
           sleep 10 # Allow Clair to start
       
       - name: Create workspace directory
@@ -88,7 +88,7 @@ jobs:
       - name: Generate Clair report
         run: |
           docker run --rm \
-            -v ${{ github.workspace }}/workspace:/workspace quay.io/projectquay/clair:4.7.2 clairctl \
+            -v ${{ github.workspace }}/workspace:/workspace quay.io/projectquay/clair:latest clairctl \
             report "${{ secrets.DOCKER_IMAGE_NAME }}:latest" --format json > ${{ github.workspace }}/workspace/clair-report.json
 
       - name: Upload Clair report
