@@ -82,21 +82,37 @@ jobs:
           docker network create clair_network
           docker run -d --rm --name clair --network clair_network \
             -p 6060:6060 -p 6061:6061 quay.io/projectquay/clair:latest
+          sleep 10 # Allow Clair to start
 
       - name: Create workspace directory
         run: mkdir -p ${{ github.workspace }}/workspace
 
-      - name: Generate Clair report
+      - name: Get Image Digest
+        id: get_digest
         run: |
-          docker run --rm --network clair_network \
-            -v ${{ github.workspace }}/workspace:/workspace \
-            quay.io/projectquay/clairctl:latest \
-            clairctl --config http://clair:6060 \
-            report "${{ secrets.DOCKER_IMAGE_NAME }}:latest" --format json > ${{ github.workspace }}/workspace/clair-report.json
+          IMAGE_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "${{ secrets.DOCKER_IMAGE_NAME }}:latest" | awk -F@ '{print $2}')
+          echo "IMAGE_DIGEST=$IMAGE_DIGEST" >> $GITHUB_ENV
+
+      - name: Submit Image Scan to Clair
+        run: |
+          curl -X POST -H "Content-Type: application/json" \
+            -d '{
+              "manifest": {
+                "hash": "sha256:'"${{ env.IMAGE_DIGEST }}"'",
+                "layers": []
+              }
+            }' \
+            http://localhost:6060/v1/indexer/api/v1/index_report
+
+      - name: Retrieve Clair Report
+        run: |
+          curl -X GET http://localhost:6060/v1/indexer/api/v1/index_report/sha256:${{ env.IMAGE_DIGEST }} \
+            -o ${{ github.workspace }}/workspace/clair-report.json
 
       - name: Upload Clair report
         uses: actions/upload-artifact@v3
         with:
           name: clair-report
           path: ${{ github.workspace }}/workspace/clair-report.json
+
 
