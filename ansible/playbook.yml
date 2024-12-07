@@ -1,9 +1,19 @@
 - name: Deploy application to AKS cluster
   hosts: localhost
+  connection: local
   tasks:
+    - name: Ensure the default namespace exists
+      kubernetes.core.k8s:
+        kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: default
+
     - name: Create deployment
       kubernetes.core.k8s:
-        kubeconfig: "~/.kube/config"  # Si le fichier kubeconfig est au chemin par défaut
+        kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
         definition:
           apiVersion: apps/v1
           kind: Deployment
