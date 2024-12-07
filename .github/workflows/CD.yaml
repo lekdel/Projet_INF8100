@@ -20,10 +20,9 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -t "${{ secrets.DOCKER_IMAGE_NAME }}:${{ github.sha }}" .
-
+        run: docker build -t "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
       - name: Push Docker image
-        run: docker push "${{ secrets.DOCKER_IMAGE_NAME }}:${{ github.sha }}"
+        run: docker push "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
 
   trivy_scan:
     runs-on: ubuntu-latest
@@ -38,7 +37,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Pull Docker image
-        run: docker pull "${{ secrets.DOCKER_IMAGE_NAME }}:${{ github.sha }}"
+        run: docker pull "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
 
       - name: Run Trivy - Clear cache
         run: docker run --rm -v ${{ github.workspace }}/.trivycache:/root/.cache/ aquasec/trivy image --clear-cache
@@ -50,7 +49,7 @@ jobs:
         run: docker run --rm -v ${{ github.workspace }}/.trivycache:/root/.cache/ -v ${{ github.workspace }}:/workspace aquasec/trivy image --exit-code 0 --format template --template "@/contrib/gitlab.tpl" --output "/workspace/trivy-report.json" "${{ secrets.DOCKER_IMAGE_NAME }}:${{ github.sha }}"
 
       - name: Run Trivy - Critical severity
-        run: docker run --rm -v ${{ github.workspace }}/.trivycache:/root/.cache/ aquasec/trivy image --exit-code 1 --severity CRITICAL "${{ secrets.DOCKER_IMAGE_NAME }}:${{ github.sha }}"
+        run: docker run --rm -v ${{ github.workspace }}/.trivycache:/root/.cache/ aquasec/trivy image --exit-code 1 --severity CRITICAL "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
 
       - name: Upload Trivy report
         uses: actions/upload-artifact@v3
@@ -71,7 +70,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Pull Docker image
-        run: docker pull "${{ secrets.DOCKER_IMAGE_NAME }}:${{ github.sha }}"
+        run: docker pull "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
 
       - name: Run Clair combo mode
         run: |
@@ -80,7 +79,7 @@ jobs:
 
       - name: Generate Clair report
         run: |
-          docker run --rm -v ${{ github.workspace }}:/workspace quay.io/projectquay/clairctl:latest clairctl report "${{ secrets.DOCKER_IMAGE_NAME }}:${{ github.sha }}" --format json > /workspace/clair-report.json
+          docker run --rm -v ${{ github.workspace }}:/workspace quay.io/projectquay/clairctl:latest clairctl report "${{ secrets.DOCKER_IMAGE_NAME }}:latest" --format json > /workspace/clair-report.json
 
       - name: Upload Clair report
         uses: actions/upload-artifact@v3
