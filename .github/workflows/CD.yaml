@@ -73,10 +73,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Pull Docker Image
-        run: docker pull ${{ secrets.DOCKER_IMAGE_NAME }}:${{ github.sha }}
-
-      - name: Tag Docker Image
-        run: docker tag ${{ secrets.DOCKER_IMAGE_NAME }}:${{ github.sha }} ${{ secrets.DOCKER_IMAGE_NAME }}:latest
+        run: docker pull "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
 
       - name: Push Docker Image
         run: docker push ${{ secrets.DOCKER_IMAGE_NAME }}:latest
