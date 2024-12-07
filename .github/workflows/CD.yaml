@@ -65,11 +65,17 @@ jobs:
 
       - name: Run Clair service
         run: |
-          docker run -d --name clair --network clair_network \
-            quay.io/projectquay/clair:4.7.2 clair -mode combo
+          docker run -d --name clair --network clair_network -p 6060:6060 \
+          -v ${{ github.workspace }}/config.yaml:/etc/clair/config.yaml \
+          quay.io/projectquay/clair:4.7.2 clair -config /etc/clair/config.yaml
 
       - name: Wait for Clair to start
-        run: sleep 15 # Wait for Clair to initialize
+        run: |
+          for i in {1..30}; do
+            curl --silent http://localhost:6060/v1/indexer/api/v1/index_report && break
+            echo "Waiting for Clair to initialize..."
+            sleep 5
+          done
 
       - name: Analyze Docker image with Clair
         run: |
@@ -87,3 +93,4 @@ jobs:
         with:
           name: clair-report
           path: clair-report.json
+
