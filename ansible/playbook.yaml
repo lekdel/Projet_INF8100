@@ -1,0 +1,27 @@
+- name: Deploy application to AKS cluster
+  hosts: localhost
+  tasks:
+    - name: Create deployment
+      kubernetes.core.k8s:
+        kubeconfig: "~/.kube/config"  # Si le fichier kubeconfig est au chemin par défaut
+        definition:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: dvga
+            namespace: default
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: dvga
+            template:
+              metadata:
+                labels:
+                  app: dvga
+              spec:
+                containers:
+                  - name: dvga-container
+                    image: bgsub/dvga:latest
+                    ports:
+                      - containerPort: 5013
