@@ -1,6 +1,8 @@
 - name: Deploy application to AKS cluster
   hosts: localhost
   connection: local
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
   tasks:
     - name: Ensure the default namespace exists
       kubernetes.core.k8s:

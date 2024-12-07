@@ -60,6 +60,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Install Python dependencies
+        run: |
+          python3 -m pip install kubernetes
+          python3 -m pip install openshift
         
       - name: Azure Login
         uses: azure/login@v2
