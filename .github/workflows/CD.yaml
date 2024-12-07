@@ -25,6 +25,7 @@ jobs:
         run: docker push "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
 
   trivy_scan:
+    needs: build-and-push 
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -58,6 +59,7 @@ jobs:
           path: trivy-report.json
 
   clair_scan:
+    needs: build-and-push 
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
