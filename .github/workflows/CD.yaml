@@ -60,33 +60,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Create Clair network
-        run: docker network create clair_network
+      - name: Run clair db
+        run: docker run -d --name clair-db arminc/clair-db:latest
 
       - name: Run Clair service
         run: |
-          docker run -d --name clair --network clair_network -p 6060:6060 \
-          -v ${{ github.workspace }}/config.yaml:/etc/clair/config.yaml \
-          quay.io/projectquay/clair:4.7.2 clair -config /etc/clair/config.yaml
+          docker run -p 6060:6060 --link clair-db:postgres -d --name clair arminc/clair-local-scan:latest
 
       - name: Wait for Clair to start
+        run: sleep 15
+
+      - name: Install Clair scanner
         run: |
-          for i in {1..30}; do
-            curl --silent http://localhost:6060/v1/indexer/api/v1/index_report && break
-            echo "Waiting for Clair to initialize..."
-            sleep 5
-          done
+          curl -L https://github.com/arminc/clair-scanner/releases/download/v12/clair-scanner_linux_amd64 \
+          -o /usr/bin/clair-scanner
+          chmod +x /usr/bin/clair-scanner
 
       - name: Analyze Docker image with Clair
+        env:
+          CLAIR_ADDR: http://localhost:6060
         run: |
-          curl -X POST -H "Content-Type: application/json" \
-            -d '{"image":"docker://${{ secrets.DOCKER_IMAGE_NAME }}:latest"}' \
-            http://localhost:6060/v1/indexer/api/v1/index_report
-
-      - name: Fetch Clair report
-        run: |
-          curl -X GET http://localhost:6060/v1/indexer/api/v1/index_report \
-            -o clair-report.json
+          clair-scanner -r clair-report.json \
+          --ip "$(hostname -I | awk '{print $1}')" "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
 
       - name: Upload Clair report
         uses: actions/upload-artifact@v3
