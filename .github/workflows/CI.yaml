@@ -3,7 +3,7 @@ name: CI/CD-pipeline-project
 on:
   push:
     branches:
-      - ci-test
+      - cicd-test
   pull_request:
     types:
       - opened
