@@ -50,7 +50,7 @@ jobs:
         run: docker run --rm -v ${{ github.workspace }}/.trivycache:/root/.cache/ aquasec/trivy image --download-db-only
 
       - name: Run Trivy - Generate report
-        run: docker run --rm -v ${{ github.workspace }}/.trivycache:/root/.cache/ -v ${{ github.workspace }}:/workspace aquasec/trivy image --exit-code 0 --format template --template "@/contrib/gitlab.tpl" --output "/workspace/trivy-report.json" "${{ secrets.DOCKER_IMAGE_NAME }}:${{ github.sha }}"
+        run: docker run --rm -v ${{ github.workspace }}/.trivycache:/root/.cache/ -v ${{ github.workspace }}:/workspace aquasec/trivy image --exit-code 0 --format template --template "@/contrib/gitlab.tpl" --output "/workspace/trivy-report.json" "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
 
       - name: Run Trivy - Critical severity
         run: docker run --rm -v ${{ github.workspace }}/.trivycache:/root/.cache/ aquasec/trivy image --exit-code 1 --severity CRITICAL "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
