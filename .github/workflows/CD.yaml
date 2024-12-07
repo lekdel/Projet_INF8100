@@ -72,9 +72,11 @@ jobs:
 
       - name: Install Clair scanner
         run: |
+          mkdir -p $HOME/bin
           curl -L https://github.com/arminc/clair-scanner/releases/download/v12/clair-scanner_linux_amd64 \
-          -o /usr/bin/clair-scanner
-          chmod +x /usr/bin/clair-scanner
+            -o $HOME/bin/clair-scanner
+          chmod +x $HOME/bin/clair-scanner
+          echo "$HOME/bin" >> $GITHUB_PATH
 
       - name: Analyze Docker image with Clair
         env:
@@ -88,4 +90,5 @@ jobs:
         with:
           name: clair-report
           path: clair-report.json
+
 
