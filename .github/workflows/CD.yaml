@@ -25,7 +25,7 @@ jobs:
       - name: Push Docker image
         run: docker push "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
 
-  trivy_scan:
+  docker_scout_scan:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
@@ -41,64 +41,17 @@ jobs:
       - name: Pull Docker image
         run: docker pull "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
 
-      - name: Run Trivy - Generate report
+      - name: Install Docker Scout
         run: |
-          docker run --rm -v ${{ github.workspace }}/.trivycache:/root/.cache/ \
-            -v ${{ github.workspace }}:/workspace aquasec/trivy image --exit-code 0 \
-            --format json --output "/workspace/trivy-report.json" "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
+          curl -fsSL https://get.docker.com -o get-docker.sh
+          sh get-docker.sh
+          docker scout install
 
-      - name: Upload Trivy report
+      - name: Run Docker Scout vulnerability scan
+        run: docker scout cves "${{ secrets.DOCKER_IMAGE_NAME }}:latest" --output json > scout-report.json
+
+      - name: Upload Docker Scout report
         uses: actions/upload-artifact@v3
         with:
-          name: trivy-report
-          path: trivy-report.json
-
-  clair_scan:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Run clair db
-        run: docker run -d --name clair-db arminc/clair-db:latest
-
-      - name: Run Clair service
-        run: |
-          docker run -p 6060:6060 --network host -d --name clair arminc/clair-local-scan:latest
-
-      - name: Wait for Clair to start
-        run: |
-          for i in {1..30}; do
-            if curl --silent http://127.0.0.1:6060/v1/layers; then
-              echo "Clair is ready"
-              break
-            fi
-            echo "Waiting for Clair to initialize..."
-            sleep 5
-          done
-
-      - name: Install Clair scanner
-        run: |
-          mkdir -p $HOME/bin
-          curl -L https://github.com/arminc/clair-scanner/releases/download/v12/clair-scanner_linux_amd64 \
-            -o $HOME/bin/clair-scanner
-          chmod +x $HOME/bin/clair-scanner
-          echo "$HOME/bin" >> $GITHUB_PATH
-
-      - name: Analyze Docker image with Clair
-        env:
-          CLAIR_ADDR: http://127.0.0.1:6060
-        run: |
-          clair-scanner -r clair-report.json \
-          --ip "$(hostname -I | awk '{print $1}')" "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
-
-      - name: Upload Clair report
-        uses: actions/upload-artifact@v3
-        with:
-          name: clair-report
-          path: clair-report.json
-
-
-
-
+          name: scout-report
+          path: scout-report.json
