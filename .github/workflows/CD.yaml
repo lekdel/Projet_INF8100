@@ -64,10 +64,6 @@ jobs:
   clair_scan:
     needs: build-and-push
     runs-on: ubuntu-latest
-    services:
-      docker:
-        image: docker:20.10.24-dind
-        options: --privileged
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -85,22 +81,28 @@ jobs:
         run: |
           docker network create clair_network || true
           docker run -d --rm --name clair --network clair_network \
-            -p 6060:6060 quay.io/projectquay/clair:4.7.2 clair -mode combo
+            quay.io/projectquay/clair:4.7.2 clair -mode combo
           sleep 15 # Wait for Clair to initialize
+
+      - name: Create workspace directory
+        run: mkdir -p ${{ github.workspace }}/workspace
 
       - name: Generate Clair report
         run: |
-          curl -X POST -H "Content-Type: application/json" \
+          docker run --rm --network clair_network curlimages/curl:latest \
+            curl -X POST -H "Content-Type: application/json" \
             -d '{"manifest":{"hash":"sha256:'"${{ github.sha }}"'","layers":[]}}' \
             http://clair:6060/v1/indexer/api/v1/index_report
-          curl -X GET http://clair:6060/v1/indexer/api/v1/index_report/sha256:${{ github.sha }} \
-            -o ${{ github.workspace }}/clair-report.json
+          docker run --rm --network clair_network curlimages/curl:latest \
+            curl -X GET http://clair:6060/v1/indexer/api/v1/index_report/sha256:${{ github.sha }} \
+            -o /workspace/clair-report.json
 
       - name: Upload Clair report
         uses: actions/upload-artifact@v3
         with:
           name: clair-report
-          path: ${{ github.workspace }}/clair-report.json
+          path: ${{ github.workspace }}/workspace/clair-report.json
+
 
 
 
