@@ -62,7 +62,7 @@ jobs:
           path: trivy-report.json
 
   clair_scan:
-    needs: trivy_scan 
+    needs: build-and-push 
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -87,7 +87,10 @@ jobs:
 
       - name: Generate Clair report
         run: |
-          docker run --rm -v ${{ github.workspace }}:/workspace quay.io/projectquay/clairctl:latest clairctl report "${{ secrets.DOCKER_IMAGE_NAME }}:latest" --format json > /workspace/clair-report.json
+          docker run --rm \
+            -v ${{ github.workspace }}/workspace:/workspace quay.io/projectquay/clairctl:latest clairctl \
+            report "${{ secrets.DOCKER_IMAGE_NAME }}:latest" --format json > ${{ github.workspace }}/workspace/clair-report.json
+
 
       - name: Upload Clair report
         uses: actions/upload-artifact@v3
