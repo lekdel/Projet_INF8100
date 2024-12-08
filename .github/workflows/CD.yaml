@@ -76,6 +76,13 @@ jobs:
           sudo apt update
           sudo apt install -y ansible
           ansible-galaxy collection install kubernetes.core community.general
+      - name: Set Docker image name
+        env:
+            DOCKER_IMAGE_NAME: ${{ secrets.DOCKER_IMAGE_NAME }}
+        run: |
+            echo "DOCKER_USERNAME=$DOCKER_USERNAME" >> $GITHUB_ENV
+            echo "DOCKER_PASSWORD=$DOCKER_PASSWORD" >> $GITHUB_ENV
+            echo "DOCKER_IMAGE_NAME=$DOCKER_IMAGE_NAME" >> $GITHUB_ENV
 
       - name: Set up kubeconfig
         run: |

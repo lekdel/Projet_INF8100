@@ -3,6 +3,8 @@
   connection: local
   vars:
     ansible_python_interpreter: /usr/bin/python3
+    docker_image_name: "{{ lookup('env', 'DOCKER_IMAGE_NAME') }}"
+
   tasks:
     - name: Ensure the default namespace exists
       kubernetes.core.k8s:
@@ -34,6 +36,6 @@
               spec:
                 containers:
                   - name: dvga-container
-                    image: bgsub/dvga:latest
+                    image: "{{ docker_image_name }}:latest"
                     ports:
                       - containerPort: 5013
