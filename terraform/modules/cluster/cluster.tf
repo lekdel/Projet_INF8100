@@ -5,7 +5,7 @@ resource "azurerm_resource_group" "projet-log8100" {
 }
 
 resource "azurerm_kubernetes_cluster" "projet-log8100" {
-  name                  = "example-aks1"
+  name                  = "projet-log8100-cluster"
   location              = azurerm_resource_group.projet-log8100.location
   resource_group_name   = azurerm_resource_group.projet-log8100.name
   dns_prefix            = "projet-log8100"
@@ -14,7 +14,7 @@ resource "azurerm_kubernetes_cluster" "projet-log8100" {
   default_node_pool {
     name            = "default"
     node_count      = 2
-    vm_size         = "Standard_D2plds_v5"
+    vm_size         = "standard_b2als_v2"
     type            = "VirtualMachineScaleSets"
     os_disk_size_gb = 250
   }
