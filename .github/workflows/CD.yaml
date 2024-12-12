@@ -55,7 +55,7 @@ jobs:
           path: scout-report.json
   
   deploy_app_with_ansible:
-    needs: push-docker
+    needs: docker_scout_scan
     runs-on: ubuntu-latest
 
     steps:
