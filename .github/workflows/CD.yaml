@@ -42,12 +42,15 @@ jobs:
         run: docker pull "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
 
       - name: Install Docker Scout
-        run: |
-          curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
-          sh install-scout.sh
+        uses: docker/scout-action@dd36f5b0295baffa006aa6623371f226cc03e506
+        with:
+          command: cves
+          image: "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
+          only-severities: critical,high
+          exit-code: true
 
-      - name: Run Docker Scout vulnerability scan
-        run: docker scout cves "${{ secrets.DOCKER_IMAGE_NAME }}:latest" --output json > scout-report.json
+      # - name: Run Docker Scout vulnerability scan
+      #   run: docker scout cves "${{ secrets.DOCKER_IMAGE_NAME }}:latest" --output json > scout-report.json
 
       - name: Upload Docker Scout report
         uses: actions/upload-artifact@v3
