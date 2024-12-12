@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dvga
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dvga
+  template:
+    metadata:
+      labels:
+        app: dvga
+    spec:
+      containers:
+      - name: dvga
+        image: bgsub/dvga:latest
+        ports:
+        - containerPort: 5013  # Change to match Dockerfile
