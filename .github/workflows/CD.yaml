@@ -20,7 +20,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -t "${{ secrets.DOCKER_IMAGE_NAME }}:latest" -f Dockerfile .
+        run: docker build -t "${{ secrets.DOCKER_IMAGE_NAME }}:latest" .
 
       - name: Push Docker image
         run: docker push "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
@@ -43,16 +43,7 @@ jobs:
 
       - name: Install Docker Scout
         run: |
-          # Download latest release script
-          curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
-          chmod +x install-scout.sh    
-          ./install-scout.sh || (
-            echo "Scout CLI installation failed. Attempting alternative installation method." &&
-            wget https://github.com/docker/scout-cli/releases/latest/download/docker-scout_linux_amd64.tar.gz &&
-            tar -xzf docker-scout_linux_amd64.tar.gz &&
-            sudo mv docker-scout /usr/local/bin/
-          )
-          docker scout version
+          curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh
 
       - name: Run Docker Scout vulnerability scan
         run: docker scout cves "${{ secrets.DOCKER_IMAGE_NAME }}:latest" --output json > scout-report.json
@@ -62,7 +53,6 @@ jobs:
         with:
           name: scout-report
           path: scout-report.json
-  
   deploy_app_with_ansible:
     needs: docker_scout_scan
     runs-on: ubuntu-latest
