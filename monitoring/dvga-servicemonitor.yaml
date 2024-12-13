@@ -1,0 +1,12 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: dvga-service-monitor
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: dvga
+  endpoints:
+    - port: 5013
+      interval: 15s

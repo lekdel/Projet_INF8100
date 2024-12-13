@@ -41,10 +41,40 @@ jobs:
           az aks get-credentials --resource-group projet-log8100 --name projet-log8100-cluster --file $HOME/.kube/config
           echo "KUBECONFIG=$HOME/.kube/config" >> $GITHUB_ENV
 
+      - name: Install Helm
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Add Helm repositories
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo update
+
+      - name: Deploy Prometheus with Helm
+        run: |
+          helm install prometheus prometheus-community/kube-prometheus-stack \
+            --namespace monitoring --create-namespace
+
+      - name: Deploy Grafana with Helm
+        run: |
+          helm install grafana grafana/grafana \
+            --namespace monitoring --create-namespace
       - name: Run Ansible playbook
         run: |
           cd ansible
           ansible-playbook -i localhost, playbook.yml
         env:
           KUBECONFIG: ${{ env.KUBECONFIG }}
+      
+      - name: Verify Monitoring Stack
+        run: |
+          kubectl get pods -n monitoring
+          kubectl get services -n monitoring
+
+      - name: Check Prometheus and Grafana
+        run: |
+          kubectl get pods -n monitoring
+          kubectl get services -n monitoring
+
 
