@@ -26,6 +26,7 @@ MarkupSafe==1.1.1
 packaging==21.3
 pluggy==1.0.0
 promise==2.3
+prometheus_client==0.16.0
 py==1.11.0
 PyJWT==1.7.1
 pyparsing==3.0.9
