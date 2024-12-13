@@ -8,5 +8,5 @@ spec:
     matchLabels:
       app: dvga
   endpoints:
-    - port: 5013
+    - port: "5013"
       interval: 15s
