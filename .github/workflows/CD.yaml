@@ -41,20 +41,7 @@ jobs:
       - name: Pull Docker image
         run: docker pull "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
 
-      - name: Install Docker Scout
-        run: |
-          curl -fsSL https://github.com/docker/scout-cli/releases/download/v1.15.1/scout-linux-amd64 -o scout
-
-      - name: Run Docker Scout vulnerability scan
-        run: docker scout cves "${{ secrets.DOCKER_IMAGE_NAME }}:latest" --output json > scout-report.json
-
-      - name: Upload Docker Scout report
-        uses: actions/upload-artifact@v3
-        with:
-          name: scout-report
-          path: scout-report.json
   deploy_app_with_ansible:
-    needs: docker_scout_scan
     runs-on: ubuntu-latest
 
     steps:
