@@ -1,197 +1,94 @@
-# Damn Vulnerable GraphQL Application
+# Log8100-project
 
-Damn Vulnerable GraphQL Application is an intentionally vulnerable implementation of Facebook's GraphQL technology, to learn and practice GraphQL Security.
+## Quelques points à savoir
 
-<p align="center">
-  <img src="https://github.com/dolevf/Damn-Vulnerable-GraphQL-Application/blob/master/static/images/dvgql_logo.png?raw=true" width="300px" alt="DVGA"/>
-</p>
+Il s'agit d'une application OWASP dont la version originale se trouve ici:  https://github.com/dolevf/Damn-Vulnerable-GraphQL-Application
 
-# Table of Contents
-* [About DVGA](#about)
-* [Operation Modes](#operation-modes)
-* [Scenarios](#scenarios)
-* [Prerequisites](#prerequisites)
-* [Installation](#installation)
-  * [Installation - Docker](#docker)
-  * [Installation - Docker Registry](#docker-registry)
-  * [Installation - Server](#server)
-* [Screenshots](#screenshots)
-* [Maintainers](#maintainers)
-* [Contributors](#contributors)
-* [Mentions](#mentions)
-* [Disclaimer](#disclaimer)
-* [License](#license)
+l'installation et la configuration de l'image docker y sont expliqués.
 
-# About DVGA
+## Requis
 
-Damn Vulnerable GraphQL is a deliberately weak and insecure implementation of GraphQL that provides a safe environment to attack a GraphQL application, allowing developers and IT professionals to test for vulnerabilities.
+- Un compte Azure (dans notre cas)
+- `minikube`
+- `ansible`
+- `terraform`
+- `kubectl`
 
-## DVGA Operation Support
+## Installation de terraform
 
-- Queries
-- Mutations
-- Subscriptions
+En utilisant la compilation à la source: https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli 
+```sh
+git clone https://github.com/hashicorp/terraform
+cd terraform
+go install
 
-DVGA has numerous flaws, such as Injections, Code Executions, Bypasses, Denial of Service, and more. See the full list under the [Scenarios](#scenarios) section. A public [Postman collection](https://www.postman.com/devrel/workspace/ab3d0551-b65d-4588-b464-1a317e8d7e98/collection/14270212-b5875c90-d36e-43f4-8bd7-2c81b556245d?action=share&creator=14270212) is also available to replay solutions to the challenges. You can import the collection by clicking on the Run in Postman button below.
-
-[![Run in Postman](https://run.pstmn.io/button.svg)](https://god.gw.postman.com/run-collection/14270212-b5875c90-d36e-43f4-8bd7-2c81b556245d?action=collection%2Ffork&collection-url=entityId%3D14270212-b5875c90-d36e-43f4-8bd7-2c81b556245d%26entityType%3Dcollection%26workspaceId%3Dab3d0551-b65d-4588-b464-1a317e8d7e98)
-
-# Operation Modes
-
-DVGA supports Beginner and Expert level game modes, which will change the exploitation difficulty.
-
-# Scenarios
-
-* **Reconnaissance**
-  * Discovering GraphQL
-  * Fingerprinting GraphQL
-* **Denial of Service**
-  * Batch Query Attack
-  * Deep Recursion Query Attack
-  * Resource Intensive Query Attack
-  * Field Duplication Attack
-  * Aliases based Attack
-* **Information Disclosure**
-  * GraphQL Introspection
-  * GraphiQL Interface
-  * GraphQL Field Suggestions
-  * Server Side Request Forgery
-  * Stack Trace Errors
-* **Code Execution**
-  * OS Command Injection #1
-  * OS Command Injection #2
-* **Injection**
-  * Stored Cross Site Scripting
-  * Log spoofing / Log Injection
-  * HTML Injection
-  * SQL Injection
-* **Authorization Bypass**
-  * GraphQL JWT Token Forge
-  * GraphQL Interface Protection Bypass
-  * GraphQL Query Deny List Bypass
-* **Miscellaneous**
-  * GraphQL Query Weak Password Protection
-  * Arbitrary File Write // Path Traversal
-
-# Prerequisites
-
-The following Python3 libraries are required:
-
-* Python3 (3.6 - 3.9) (3.10 is not supported)
-* Flask
-* Flask-SQLAlchemy
-* Flask-Sockets
-* Gevent
-* Graphene
-* Graphene-SQLAlchemy
-* Rx
-
-See [requirements.txt](requirements.txt) for dependencies.
+##Pour vérrifier l'installation
+terraform -help
+```
 
 
-# Installation
+## Installation ansible
 
-## Docker
+```sh
+##Installer  Windows Subsystem for Linux (WSL)
+wsl --install
+```
+Après l'installation de wsl, un terminal ubuntu va se lancer. 
 
-### Clone the repository
+Il faut entrer les commandes suivante: 
+```sh
+## Update packages 
+sudo apt update
 
-`git clone https://github.com/dolevf/Damn-Vulnerable-GraphQL-Application.git && cd Damn-Vulnerable-GraphQL-Application`
+## installation des préréquis: 
+sudo apt install software-properties-common
+sudo apt-add-repository ppa:ansible/ansible
+sudo apt update
 
-### Build the Docker image
+## installation de Ansible 
 
-`docker build -t dvga .`
+sudo apt install ansible -y
+```
 
-**Note:** If you are using an ARM-based Mac, use the dedicated Dockerfile.arm64 file:
+## Installation de Kubectl 
 
-`docker build -t dvga -f Dockerfile.arm64 .`
+La documentation complète se trouve ici: https://kubernetes.io/docs/tasks/tools/install-kubectl-windows/#install-kubectl-binary-on-windows-via-direct-download-or-curl 
 
-### Create a container from the image
+1. téléchargement de Kubectl
 
-`docker run -d -t -p 5013:5013 -e WEB_HOST=0.0.0.0 --name dvga dvga`
+```
+curl.exe -LO "https://dl.k8s.io/release/v1.32.0/bin/windows/amd64/kubectl.exe"
+curl.exe -LO "https://dl.k8s.io/v1.32.0/bin/windows/amd64/kubectl.exe.sha256"
 
-In your browser, navigate to http://localhost:5013
+```
+2. Ensuite ajouter le fichier binaire dans votre  path
 
-Note: if you need the application to bind on a specific port (e.g. 8080), use **-e WEB_PORT=8080**.
+## Installation de minukube 
 
-## Docker Registry
+La documentation complète se trouve ici: https://minikube.sigs.k8s.io/docs/start/?arch=%2Fwindows%2Fx86-64%2Fstable%2F.exe+download 
 
-### Pull the docker image from Docker Hub
+1. Installer minikube via le lien de la documentation 
+2. Lancer la commande suivante pour s'assurer que l'installation a été complétée: 
 
-`docker pull dolevf/dvga`
+`minikube start`
 
-Docker Hub image: [dolevf/dvga](https://hub.docker.com/r/dolevf/dvga)
+Cela va démarrer un cluster avec un seul noeud. 
+## L'utilisation de Kubectl 
 
-### Create a container from the image
+Il faudrait déjà avoir un cluster k8s et le configurer dans un fichier KUBECONFIG. nous avons utilisé un cluster dans Azure.
 
-`docker run -t -p 5013:5013 -e WEB_HOST=0.0.0.0 dolevf/dvga`
+1. Se connecter à Azure 
 
-In your browser, navigate to http://localhost:5013
+`az login` 
 
-## Server
+2. configuer automatiquement kubeconfig 
 
-**Note**: Python 3.10 is **not supported** yet!
+`az aks get-credentials --resource-group <nom-du-groupe-de-ressources> --name <nom-du-cluster>`
 
-### Navigate to /opt
+3. Lancer ces commandes pour apercevoir vos noeuds en local. 
 
-`cd /opt/`
+```sh
+kubectl get nodes -o wide
+kubectl get pods -A -o wide
 
-### Clone the repository
-
-`git clone git@github.com:dolevf/Damn-Vulnerable-GraphQL-Application.git && cd Damn-Vulnerable-GraphQL-Application`
-
-### Install Requirements
-
-`pip3 install -r requirements.txt`
-
-### Run application
-
-`python3 app.py`
-
-In your browser, navigate to http://localhost:5013.
-
-# Screenshots
-
-![DVGA](https://github.com/dolevf/Damn-Vulnerable-GraphQL-Application/blob/master/static/screenshots/index.png)
-![DVGA](https://github.com/dolevf/Damn-Vulnerable-GraphQL-Application/blob/master/static/screenshots/solution.png)
-![DVGA](https://github.com/dolevf/Damn-Vulnerable-GraphQL-Application/blob/master/static/screenshots/pastes.png)
-![DVGA](https://github.com/dolevf/Damn-Vulnerable-GraphQL-Application/blob/master/static/screenshots/create.png)
-
-# Maintainers
-
-* [Dolev Farhi](https://github.com/dolevf)
-* [Connor McKinnon](https://github.com/connormckinnon93)
-* [Nick Aleks](https://github.com/nicholasaleks)
-# Contributors
-A big Thank You to the kind people who helped make DVGA better:
- * [Halfluke](https://github.com/halfluke)
-
-# Mentions
-* [Black Hat GraphQL - No Starch Press](https://blackhatgraphql.com)
-* [OWASP Vulnerable Web Applications Directory](https://owasp.org/www-project-vulnerable-web-applications-directory/)
-* [GraphQL Weekly](https://www.graphqlweekly.com/issues/221/#content)
-* [DZone API Security Weekly](https://dzone.com/articles/api-security-weekly-issue-121)
-* [KitPloit](https://www.kitploit.com/2021/02/damn-vulnerable-graphql-application.html)
-* [tl;dr sec #72](https://tldrsec.com/blog/tldr-sec-072/)
-* [Intigriti Blog](https://blog.intigriti.com/2021/02/17/bug-bytes-110-scope-based-recon-finding-more-idors-how-to-hack-sharepoint/)
-* [STÖK - Bounty Thursdays #26](https://www.youtube.com/watch?v=645Tb7ySQFk)
-* [Brakeing Security 2021-007](https://brakeingsecurity.com/2021-007-news-google-asking-for-oss-to-embrace-standards-insider-threat-at-yandex-vectr-discussion)
-* [Yes We Hack - How to Exploit GraphQL](https://blog.yeswehack.com/yeswerhackers/how-exploit-graphql-endpoint-bug-bounty/)
-* [GraphQL Editor](https://blog.graphqleditor.com/dvga)
-* [GraphQL Hacking (Portuguese)](https://www.youtube.com/watch?v=4gXOerUZ7fw)
-* [InQL GraphQL Scanner Demo](https://www.youtube.com/watch?v=KOCBeJmTs78)
-* [H4ck3d - Security Conference 2021 (Spanish)](https://youtu.be/hg_kVoy-W1s)
-* [Christina Hasternath - GraphQLConf 2021](https://www.youtube.com/watch?v=tPO1jl0tCKg)
-* [Hacking APIs (Ch14) by Corey Ball - No Starch Press](https://nostarch.com/hacking-apis)
-* [Hacking Simplified Part #1](https://www.youtube.com/watch?v=w0QOAacuPgQ)
-* [Hacking Simplified Part #2](https://www.youtube.com/watch?v=YA-mL9Z8SNI)
-* [Hacking Simplified Part #3](https://www.youtube.com/watch?v=kUTIFx8vGQs)
-
-# Disclaimer
-
-DVGA is highly insecure, and as such, should not be deployed on internet facing servers. By default, the application is listening on 127.0.0.1 to avoid misconfigurations.
-
-DVGA is intentionally flawed and vulnerable, as such, it comes with no warranties. By using DVGA, you take full responsibility for using it.
-
-# License
-
-It is distributed under the MIT License. See LICENSE for more information.
+```
