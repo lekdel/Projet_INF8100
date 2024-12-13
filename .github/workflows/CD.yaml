@@ -75,7 +75,7 @@ jobs:
       - name: Run Ansible playbook
         run: |
           cd ansible
-          ansible-playbook -i localhost, playbook.yml
+          ansible-playbook -i localhost, playbook.yml -vvvv
         env:
           KUBECONFIG: ${{ env.KUBECONFIG }}
       
