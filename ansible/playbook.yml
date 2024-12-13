@@ -46,6 +46,13 @@
       args:
         executable: /bin/bash
 
+    - name: Ensure Grafana is clean
+      shell: |
+        helm list -n monitoring | grep grafana && \
+        helm uninstall grafana -n monitoring || echo "No existing release to delete"
+      args:
+        executable: /bin/bash
+
     - name: Deploy Grafana with Helm
       shell: |
         helm upgrade --install grafana grafana/grafana \
