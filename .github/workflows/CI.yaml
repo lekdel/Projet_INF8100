@@ -1,15 +1,16 @@
 name: CI/CD-pipeline-project
 
 on:
-  push:
-    branches:
-      - feature/*
-      - ci-test
+  # push:
+  #   branches:
+  #     - feature/*
+  #     - ci-test
   pull_request:
     types:
       - opened
       - synchronize
       - reopened
+permissions: write-all
 
 jobs:
   sonarcloud:
