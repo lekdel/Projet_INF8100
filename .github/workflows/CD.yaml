@@ -27,6 +27,7 @@ jobs:
           sudo apt update
           sudo apt install -y ansible
           ansible-galaxy collection install kubernetes.core community.general
+
       - name: Set Docker image name
         env:
             DOCKER_IMAGE_NAME: ${{ secrets.DOCKER_IMAGE_NAME }}
@@ -51,15 +52,26 @@ jobs:
           helm repo add grafana https://grafana.github.io/helm-charts
           helm repo update
 
+      - name: Ensure Prometheus is clean
+        run: |
+          helm list -n monitoring | grep prometheus && \
+          helm uninstall prometheus -n monitoring || echo "No existing release to delete"
+
       - name: Deploy Prometheus with Helm
         run: |
-          helm install prometheus prometheus-community/kube-prometheus-stack \
+          helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
             --namespace monitoring --create-namespace
+
+      - name: Ensure Grafana is clean
+        run: |
+          helm list -n monitoring | grep grafana && \
+          helm uninstall grafana -n monitoring || echo "No existing release to delete"
 
       - name: Deploy Grafana with Helm
         run: |
-          helm install grafana grafana/grafana \
+          helm upgrade --install grafana grafana/grafana \
             --namespace monitoring --create-namespace
+
       - name: Run Ansible playbook
         run: |
           cd ansible
@@ -76,5 +88,3 @@ jobs:
         run: |
           kubectl get pods -n monitoring
           kubectl get services -n monitoring
-
-
