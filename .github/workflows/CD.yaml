@@ -75,7 +75,7 @@ jobs:
       - name: Set up kubeconfig
         run: |
           az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
-          az aks get-credentials --resource-group projet-log8100 --name example-aks1 --file $HOME/.kube/config
+          az aks get-credentials --resource-group projet-log8100 --name projet-log8100-cluster --file $HOME/.kube/config
           echo "KUBECONFIG=$HOME/.kube/config" >> $GITHUB_ENV
 
       - name: Run Ansible playbook
