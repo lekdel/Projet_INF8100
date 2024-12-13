@@ -1,16 +1,10 @@
 name: CI/CD-pipeline-project
 
 on:
-  # push:
-  #   branches:
-  #     - feature/*
-  #     - ci-test
-  pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
-permissions: write-all
+  push:
+    branches:
+      - feature/*
+      - main
 
 jobs:
   sonarcloud:
@@ -35,6 +29,7 @@ jobs:
   
   build-and-push:
     name: Build and Push Docker Image to Docker Hub
+    needs: sonarcloud
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
