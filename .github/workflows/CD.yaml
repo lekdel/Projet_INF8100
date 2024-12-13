@@ -1,0 +1,95 @@
+name: Build and Deploy to AKS
+
+on:
+  push:
+    branches:
+      - ci-test
+      - test-without-scout
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Image to Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2  
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2 
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker image
+        run: docker build -t "${{ secrets.DOCKER_IMAGE_NAME }}:latest" .
+
+      - name: Push Docker image
+        run: docker push "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
+
+  docker_scout_scan:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Pull Docker image
+        run: docker pull "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
+      - name: Docker Scout
+        id: docker-scout
+        uses: docker/scout-action@v1
+        with:
+          command: cves
+          image: ${{ steps.meta.outputs.tags }}
+          only-severities: critical,high
+          exit-code: true
+
+  deploy_app_with_ansible:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install Python dependencies
+        run: |
+          python3 -m pip install kubernetes
+          python3 -m pip install openshift
+        
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Install required packages
+        run: |
+          sudo apt update
+          sudo apt install -y ansible
+          ansible-galaxy collection install kubernetes.core community.general
+      - name: Set Docker image name
+        env:
+            DOCKER_IMAGE_NAME: ${{ secrets.DOCKER_IMAGE_NAME }}
+        run: |
+            echo "DOCKER_USERNAME=$DOCKER_USERNAME" >> $GITHUB_ENV
+            echo "DOCKER_PASSWORD=$DOCKER_PASSWORD" >> $GITHUB_ENV
+            echo "DOCKER_IMAGE_NAME=$DOCKER_IMAGE_NAME" >> $GITHUB_ENV
+
+      - name: Set up kubeconfig
+        run: |
+          az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+          az aks get-credentials --resource-group projet-log8100 --name projet-log8100-cluster --file $HOME/.kube/config
+          echo "KUBECONFIG=$HOME/.kube/config" >> $GITHUB_ENV
+
+      - name: Run Ansible playbook
+        run: |
+          cd ansible
+          ansible-playbook -i localhost, playbook.yml
+        env:
+          KUBECONFIG: ${{ env.KUBECONFIG }}
+
