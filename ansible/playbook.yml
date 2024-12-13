@@ -34,7 +34,7 @@
 
     - name: Deploy Prometheus with Helm
       shell: |
-        helm install prometheus prometheus-community/kube-prometheus-stack \
+        helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
           --namespace monitoring --create-namespace
       args:
         executable: /bin/bash
@@ -70,7 +70,7 @@
                     image: "{{ docker_image_name }}:latest"
                     ports:
                       - containerPort: 5013
-                      
+
     - name: Deploy ServiceMonitor for dvga
       kubernetes.core.k8s:
         kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
