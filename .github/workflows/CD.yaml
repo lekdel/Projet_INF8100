@@ -41,6 +41,16 @@ jobs:
 
       - name: Pull Docker image
         run: docker pull "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
+      - name: Docker Scout
+        id: docker-scout
+        uses: docker/scout-action@v1
+        with:
+          command: compare
+          image: ${{ steps.meta.outputs.tags }}
+          to-env: production
+          ignore-unchanged: true
+          only-severities: critical,high
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
   deploy_app_with_ansible:
     runs-on: ubuntu-latest
