@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - ci-test
+      - test-without-scout
 
 jobs:
   build-and-push:
