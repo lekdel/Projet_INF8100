@@ -32,6 +32,13 @@
       args:
         executable: /bin/bash
 
+    - name: Ensure Prometheus is clean
+      shell: |
+        helm list -n monitoring | grep prometheus && \
+        helm uninstall prometheus -n monitoring || echo "No existing release to delete"
+      args:
+        executable: /bin/bash
+
     - name: Deploy Prometheus with Helm
       shell: |
         helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
@@ -41,7 +48,7 @@
 
     - name: Deploy Grafana with Helm
       shell: |
-        helm install grafana grafana/grafana \
+        helm upgrade --install grafana grafana/grafana \
           --namespace monitoring --create-namespace
       args:
         executable: /bin/bash
