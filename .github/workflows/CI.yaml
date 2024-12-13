@@ -3,6 +3,7 @@ name: CI/CD-pipeline-project
 on:
   push:
     branches:
+      - feature/*
       - ci-test
   pull_request:
     types:
@@ -30,3 +31,47 @@ jobs:
         uses: snyk/actions/python@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+  
+  build-and-push:
+    name: Build and Push Docker Image to Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2  
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2 
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker image
+        run: docker build -t "${{ secrets.DOCKER_IMAGE_NAME }}:latest" .
+
+      - name: Push Docker image
+        run: docker push "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
+
+  docker_scout_scan:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Pull Docker image
+        run: docker pull "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
+      
+      - name: Docker Scout
+        id: docker-scout
+        uses: docker/scout-action@v1
+        with:
+          command: cves
+          image: ${{ steps.meta.outputs.tags }}
+          only-severities: critical,high
+          exit-code: true
