@@ -49,28 +49,16 @@ jobs:
       - name: Add Helm repositories
         run: |
           helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-          helm repo add grafana https://grafana.github.io/helm-charts
           helm repo update
-
-      - name: Ensure Prometheus is clean
-        run: |
-          helm list -n monitoring | grep prometheus && \
-          helm uninstall prometheus -n monitoring || echo "No existing release to delete"
 
       - name: Deploy Prometheus with Helm
         run: |
-          helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
-            --namespace monitoring --create-namespace
-
-      - name: Ensure Grafana is clean
-        run: |
-          helm list -n monitoring | grep grafana && \
-          helm uninstall grafana -n monitoring || echo "No existing release to delete"
-
-      - name: Deploy Grafana with Helm
-        run: |
-          helm upgrade --install grafana grafana/grafana \
-            --namespace monitoring --create-namespace
+          helm install prometheus-community/kube-prometheus-stack \
+          --create-namespace --namespace prometheus \
+          --generate-name \
+          --set prometheus.service.type=LoadBalancer \
+          --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false \
+          --set grafana.service.type=LoadBalancer \
 
       - name: Run Ansible playbook
         run: |
@@ -78,13 +66,3 @@ jobs:
           ansible-playbook -i localhost, playbook.yml
         env:
           KUBECONFIG: ${{ env.KUBECONFIG }}
-      
-      - name: Verify Monitoring Stack
-        run: |
-          kubectl get pods -n monitoring
-          kubectl get services -n monitoring
-
-      - name: Check Prometheus and Grafana
-        run: |
-          kubectl get pods -n monitoring
-          kubectl get services -n monitoring

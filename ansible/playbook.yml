@@ -15,51 +15,6 @@
           metadata:
             name: default
 
-    - name: Ensure the monitoring namespace exists
-      kubernetes.core.k8s:
-        kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
-        definition:
-          apiVersion: v1
-          kind: Namespace
-          metadata:
-            name: monitoring
-
-    - name: Add Helm repositories 
-      shell: |
-        helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-        helm repo add grafana https://grafana.github.io/helm-charts
-        helm repo update
-      args:
-        executable: /bin/bash
-
-    - name: Ensure Prometheus is clean
-      shell: |
-        helm list -n monitoring | grep prometheus && \
-        helm uninstall prometheus -n monitoring || echo "No existing release to delete"
-      args:
-        executable: /bin/bash
-
-    - name: Deploy Prometheus with Helm
-      shell: |
-        helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
-          --namespace monitoring --create-namespace
-      args:
-        executable: /bin/bash
-
-    - name: Ensure Grafana is clean
-      shell: |
-        helm list -n monitoring | grep grafana && \
-        helm uninstall grafana -n monitoring || echo "No existing release to delete"
-      args:
-        executable: /bin/bash
-
-    - name: Deploy Grafana with Helm
-      shell: |
-        helm upgrade --install grafana grafana/grafana \
-          --namespace monitoring --create-namespace
-      args:
-        executable: /bin/bash
-
     - name: Create deployment
       kubernetes.core.k8s:
         kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
