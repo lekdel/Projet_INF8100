@@ -88,4 +88,4 @@
     - name: Deploy ServiceMonitor for dvga
       kubernetes.core.k8s:
         kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
-        definition: "{{ lookup('file', 'monitoring/dvga-servicemonitor.yaml') }}"
+        definition: "{{ lookup('file', './monitoring/dvga-servicemonitor.yaml') }}"
