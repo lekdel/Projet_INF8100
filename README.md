@@ -20,13 +20,13 @@ l'installation et la configuration de l'image docker y sont expliqués.
 - `kubectl`
 
 ## Étapes du Pipeline CI/CD
-# Pipeline d'intégration continue:
+### Pipeline d'intégration continue:
 1. Analyse du code avec SonarCloud
 2. Analyse des dépendances avec Snyk
 3. Construire et push l'image de l'application
 4. Analyse de l'image avec Docker Scout
 5. Analyse de l'IaC avec Trivy
-# Pipeline de déploiement continue:
+### Pipeline de déploiement continue:
 
 ## Installation de terraform
 
