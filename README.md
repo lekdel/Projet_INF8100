@@ -8,7 +8,7 @@ l'installation et la configuration de l'image docker y sont expliqués.
 
 ## Requis
 
-- Un compte Azure (dans notre cas)
+- Un compte Azure
 - Un compte Docker
 - `SonarQube Cloud`
 - `Snyk`
