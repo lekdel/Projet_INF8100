@@ -14,10 +14,10 @@ l'installation et la configuration de l'image docker y sont expliqués.
 - `Snyk`
 - `Docker Scout`
 - `Trivy`
-- `minikube`
-- `ansible`
-- `terraform`
-- `kubectl`
+- `Minikube`
+- `Ansible`
+- `Terraform`
+- `Kubectl`
 
 ## Étapes du Pipeline CI/CD
 ### Pipeline d'intégration continue
