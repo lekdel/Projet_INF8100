@@ -16,16 +16,24 @@
             name: default
 
     - name: Add Prometheus Helm repository
-      shell: |
-        helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-        helm repo update
+      kubernetes.core.helm_repository:
+        name: prometheus-community
+        repo_url: https://prometheus-community.github.io/helm-charts
 
     - name: Install kube-prometheus-stack
-      shell: |
-        helm install prometheus prometheus-community/kube-prometheus-stack \
-          --namespace prometheus --create-namespace \
-          --set prometheus.service.type=LoadBalancer \
-          --set grafana.service.type=LoadBalancer
+      kubernetes.core.helm:
+        name: prometheus
+        chart_ref: prometheus-community/kube-prometheus-stack
+        release_namespace: prometheus
+        create_namespace: true
+        values:
+          prometheus:
+            service:
+              type: LoadBalancer
+          grafana:
+            service:
+              type: LoadBalancer
+
 
     - name: Create deployment
       kubernetes.core.k8s:
