@@ -16,12 +16,12 @@
             name: default
 
     - name: Add Prometheus Helm repository
-      run: |
+      shell: |
         helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
         helm repo update
 
     - name: Install kube-prometheus-stack
-      run: |
+      shell: |
         helm install prometheus prometheus-community/kube-prometheus-stack \
           --namespace prometheus --create-namespace \
           --set prometheus.service.type=LoadBalancer \
@@ -56,4 +56,3 @@
       kubernetes.core.k8s:
         kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
         definition: "{{ lookup('file', 'dvga-servicemonitor.yaml') }}"
-
