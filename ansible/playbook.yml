@@ -15,6 +15,18 @@
           metadata:
             name: default
 
+    - name: Add Prometheus Helm repository
+      run: |
+        helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+        helm repo update
+
+    - name: Install kube-prometheus-stack
+      run: |
+        helm install prometheus prometheus-community/kube-prometheus-stack \
+          --namespace prometheus --create-namespace \
+          --set prometheus.service.type=LoadBalancer \
+          --set grafana.service.type=LoadBalancer
+          
     - name: Create deployment
       kubernetes.core.k8s:
         kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
