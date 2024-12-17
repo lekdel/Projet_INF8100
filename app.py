@@ -51,6 +51,10 @@ if __name__ == '__main__':
     from geventwebsocket.handler import WebSocketHandler
     from version import VERSION
 
-    server = pywsgi.WSGIServer((config.WEB_HOST, int(config.WEB_PORT)), app, handler_class=WebSocketHandler)
-    print("DVGA Server Version: {version} Running...".format(version=VERSION))
+    # Configuration de l'adresse et du port
+    host = config.WEB_HOST
+    port = int(config.WEB_PORT)
+
+    server = pywsgi.WSGIServer((host, port), app, handler_class=WebSocketHandler)
+    print("DVGA Server Version: {version} Running on {host}:{port}...".format(version=VERSION, host=host, port=port))
     server.serve_forever()
