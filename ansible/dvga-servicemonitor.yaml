@@ -2,7 +2,9 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: dvga-service-monitor
-  namespace: monitoring
+  namespace: prometheus
+  labels:
+    prometheus: kube-prometheus  
 spec:
   selector:
     matchLabels:

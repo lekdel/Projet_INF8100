@@ -57,8 +57,9 @@ jobs:
           --create-namespace --namespace prometheus \
           --generate-name \
           --set prometheus.service.type=LoadBalancer \
-          --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false \
           --set grafana.service.type=LoadBalancer \
+          --timeout 10m
+
 
       - name: Run Ansible playbook
         run: |
