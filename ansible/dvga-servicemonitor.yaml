@@ -2,13 +2,16 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: dvga-service-monitor
-  namespace: monitoring  
+  namespace: monitoring
   labels:
     prometheus: kube-prometheus
 spec:
+  namespaceSelector:
+    matchNames:
+      - default  
   selector:
     matchLabels:
       app: dvga
   endpoints:
-    - port: "5013"
+    - port: "http"  
       interval: 15s
