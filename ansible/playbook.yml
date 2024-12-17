@@ -26,7 +26,7 @@
           --namespace prometheus --create-namespace \
           --set prometheus.service.type=LoadBalancer \
           --set grafana.service.type=LoadBalancer
-          
+
     - name: Create deployment
       kubernetes.core.k8s:
         kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
@@ -56,3 +56,4 @@
       kubernetes.core.k8s:
         kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
         definition: "{{ lookup('file', 'dvga-servicemonitor.yaml') }}"
+

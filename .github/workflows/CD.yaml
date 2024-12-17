@@ -57,17 +57,6 @@ jobs:
           helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
           helm repo update
 
-      - name: Deploy Prometheus with Helm
-        run: |
-          helm install prometheus-community/kube-prometheus-stack \
-          --create-namespace --namespace prometheus \
-          --generate-name \
-          --set prometheus.service.type=LoadBalancer \
-          --set grafana.service.type=LoadBalancer \
-          --timeout 10m
-          --force
-
-
       - name: Run Ansible playbook
         run: |
           cd ansible
