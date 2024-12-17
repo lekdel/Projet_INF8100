@@ -52,6 +52,25 @@
                     ports:
                       - containerPort: 5013
 
+    - name: Create Service for dvga
+      kubernetes.core.k8s:
+        kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
+        definition:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: dvga-service
+            namespace: default
+            labels:
+              app: dvga
+          spec:
+            selector:
+              app: dvga
+            ports:
+              - name: http
+                port: 5013
+                targetPort: 5013
+
     - name: Deploy ServiceMonitor for dvga
       kubernetes.core.k8s:
         kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
