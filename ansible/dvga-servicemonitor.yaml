@@ -13,5 +13,6 @@ spec:
     matchLabels:
       app: dvga
   endpoints:
-    - port: "http"  
+    - port: "http" 
+      path: /metrics
       interval: 15s
