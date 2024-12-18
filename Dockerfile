@@ -1,4 +1,4 @@
-FROM python:3.11-alpine
+FROM python:3.7-alpine
 
 LABEL description="Damn Vulnerable GraphQL Application"
 LABEL github="https://github.com/dolevf/Damn-Vulnerable-GraphQL-Application"
@@ -8,36 +8,30 @@ ARG TARGET_FOLDER=/opt/dvga
 WORKDIR $TARGET_FOLDER/
 
 # Installer curl, gcc et dépendances nécessaires
-RUN apk add --no-cache curl gcc libc-dev python3-dev
+RUN apk add --update curl 
 
 # Ajouter un utilisateur non-root
 RUN adduser -D dvga
 
 # Créer le répertoire et ajuster les permissions
-RUN mkdir -p $TARGET_FOLDER && chown dvga:dvga $TARGET_FOLDER
-
-# Passer à l'utilisateur non-root
+RUN chown dvga. $TARGET_FOLDER/
 USER dvga
 
-# Environnement virtuel et installation des dépendances
 RUN python -m venv venv
-RUN source venv/bin/activate && pip install --upgrade pip
+RUN source venv/bin/activate
+RUN pip3 install --upgrade pip --no-warn-script-location --disable-pip-version-check
 
-# Copier les fichiers nécessaires
-COPY --chown=dvga:dvga core /opt/dvga/core
-COPY --chown=dvga:dvga db /opt/dvga/db
-COPY --chown=dvga:dvga static /opt/dvga/static
-COPY --chown=dvga:dvga templates /opt/dvga/templates
+ADD --chown=dvga:dvga core /opt/dvga/core
+ADD --chown=dvga:dvga db /opt/dvga/db
+ADD --chown=dvga:dvga static /opt/dvga/static
+ADD --chown=dvga:dvga templates /opt/dvga/templates
 COPY --chown=dvga:dvga app.py /opt/dvga
 COPY --chown=dvga:dvga config.py /opt/dvga
 COPY --chown=dvga:dvga setup.py /opt/dvga/
 COPY --chown=dvga:dvga version.py /opt/dvga/
 COPY --chown=dvga:dvga requirements.txt /opt/dvga/
 
-# Installer les dépendances Python
-RUN source venv/bin/activate && pip install -r requirements.txt
-
-# Lancer le setup
+RUN pip3 install -r requirements.txt --user --no-warn-script-location
 RUN python setup.py
 
 EXPOSE 5013/tcp
