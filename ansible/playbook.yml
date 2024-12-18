@@ -107,6 +107,6 @@
                   static_configs:
                     - targets: ['dvga-service.default.svc.cluster.local:5013']
 
-    - name: Restart Prometheus Deployment to apply ConfigMap
+    - name: Restart Prometheus StatefulSet to apply ConfigMap
       command: >
-        kubectl rollout restart deployment prometheus-kube-prometheus-prometheus -n prometheus
+        kubectl rollout restart statefulset prometheus-prometheus-kube-prometheus-prometheus -n prometheus
