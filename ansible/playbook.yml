@@ -4,8 +4,8 @@
   vars:
     ansible_python_interpreter: /usr/bin/python3
     docker_image_name: "{{ lookup('env', 'DOCKER_IMAGE_NAME') }}"
-    discord_webhook_url: " ${{ secrets.DISCORD_WEBHOOK_URL }}"
-    
+    discord_webhook_url: "{{ lookup('env', 'DISCORD_WEBHOOK_URL') }}"  # Assurez-vous que cette variable est bien définie dans votre environnement
+
   tasks:
     - name: Ensure the default namespace exists
       kubernetes.core.k8s:
@@ -34,7 +34,6 @@
           grafana:
             service:
               type: LoadBalancer
-
 
     - name: Create deployment
       kubernetes.core.k8s:
@@ -107,15 +106,15 @@
                   metrics_path: '/metrics'
                   static_configs:
                     - targets: ['dvga-service.default.svc.cluster.local:5013']
-                    
+
     - name: Restart Prometheus StatefulSet to apply ConfigMap
       command: >
         kubectl rollout restart statefulset prometheus-prometheus-kube-prometheus-prometheus -n prometheus
-    
+
     - name: Vérifier les vulnérabilités critiques dans Prometheus
-      command: >
-        curl -s http://4.172.126.83:9090/api/v1/query
-        --data-urlencode 'query=ALERTS{alertstate="firing"}'
+      command: |
+        curl -s http://4.172.126.83:9090/api/v1/query \
+        --data-urlencode "query=ALERTS{alertstate='firing'}"
       register: prometheus_alerts
       failed_when: prometheus_alerts.rc != 0
 
@@ -125,10 +124,9 @@
 
     - name: Envoyer une alerte Discord pour chaque alerte
       when: alert_results.status == 'success' and alert_results.data.result | length > 0
-      loop: "{{ alert_results.data.result }}"
+      with_items: "{{ alert_results.data.result }}"
       vars:
         alert: "{{ item.metric }}"
-      run_once: true
       block:
         - name: Construire le message d'alerte
           set_fact:
@@ -137,12 +135,12 @@
               - État : {{ alert.alertstate }}
               - Gravité : {{ alert.severity }}
               - Détails : {{ alert }}
+
         - name: Envoyer une alerte à Discord
-          community.general.slack:
-            token: "{{ discord_webhook_url }}"
-            msg: "{{ discord_message }}"
-
-
-
-
-
+          uri:
+            url: "{{ discord_webhook_url }}"
+            method: POST
+            body: '{"content": "{{ discord_message }}"}'
+            headers:
+              Content-Type: "application/json"
+            status_code: 204
