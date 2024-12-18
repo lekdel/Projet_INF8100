@@ -4,7 +4,7 @@
   vars:
     ansible_python_interpreter: /usr/bin/python3
     docker_image_name: "{{ lookup('env', 'DOCKER_IMAGE_NAME') }}"
-    discord_webhook_url: "{{ lookup('env', 'DISCORD_WEBHOOK_URL') }}"  # Assurez-vous que cette variable est bien définie dans votre environnement
+    discord_webhook_url: "{{ lookup('env', 'DISCORD_WEBHOOK_URL') }}"  
 
   tasks:
     - name: Ensure the default namespace exists
@@ -35,6 +35,18 @@
             service:
               type: LoadBalancer
 
+    - name: Définir un ResourceQuota pour limiter les ressources dans le namespace
+      kubernetes.core.k8s:
+        kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
+        state: present
+        definition: "{{ lookup('file', 'resource-quota.yaml') }}"
+
+    - name: Définir un LimitRange pour imposer des limites par défaut sur les pods
+      kubernetes.core.k8s:
+        kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
+        state: present
+        definition: "{{ lookup('file', 'limit-range.yaml') }}"
+
     - name: Create deployment
       kubernetes.core.k8s:
         kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
@@ -58,7 +70,7 @@
                   - name: dvga-container
                     image: "{{ docker_image_name }}:latest"
                     ports:
-                      - containerPort: 5013
+                      - containerPort: 5013  
 
     - name: Create Service for dvga
       kubernetes.core.k8s:
