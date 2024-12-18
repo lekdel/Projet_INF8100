@@ -17,6 +17,12 @@ jobs:
       uses: sonarsource/sonarcloud-github-action@v3.1.0
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    - name: Send failure alert to Discord
+      if: failure()
+      run: |
+        curl -H "Content-Type: application/json" \
+        -d '{"content": "❌ **SonarCloud Scan** a échoué sur la branche `${{ github.ref }}`"}' \
+        ${{ secrets.DISCORD_WEBHOOK_URL }}
 
   snyk:
     runs-on: ubuntu-latest
@@ -28,7 +34,13 @@ jobs:
         uses: snyk/actions/python@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-  
+      - name: Send vulnerability alert to Discord
+        if: failure()
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d '{"content": "⚠️ **Snyk** a détecté des vulnérabilités critiques ! Analysez le rapport immédiatement."}' \
+          ${{ secrets.DISCORD_WEBHOOK_URL }}
+   
   build-and-push:
     name: Build and Push Docker Image to Docker Hub
     needs: snyk
@@ -74,7 +86,14 @@ jobs:
           image: ${{ steps.meta.outputs.tags }}
           only-severities: critical,high
           exit-code: true
-  
+
+      - name: Send vulnerability alert to Discord
+        if: failure()
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d '{"content": "❗ **Docker Scout** a détecté des vulnérabilités critiques dans l''image Docker."}' \
+          ${{ secrets.DISCORD_WEBHOOK_URL }}  
+
   trivy:
     needs: docker_scout_scan
     runs-on: ubuntu-latest
@@ -102,3 +121,10 @@ jobs:
         with:
           name: trivy-report
           path: trivy-report.json
+          
+      - name: Send vulnerability alert to Discord
+        if: failure()
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d '{"content": "❗ **Trivy** a détecté des vulnérabilités dans l''image Docker ! Vérifiez le rapport pour plus de détails."}' \
+          ${{ secrets.DISCORD_WEBHOOK_URL }}

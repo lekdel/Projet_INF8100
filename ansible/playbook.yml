@@ -4,6 +4,7 @@
   vars:
     ansible_python_interpreter: /usr/bin/python3
     docker_image_name: "{{ lookup('env', 'DOCKER_IMAGE_NAME') }}"
+    discord_webhook_url: "https://discord.com/api/webhooks/1318826170195771464/3RBh-1M9-j8rfAQPMJeVWLukeyWd9hxONyJr7N8kJxL5aa0Zw_f88m3f1ji4coe89sVy"
 
   tasks:
     - name: Ensure the default namespace exists
@@ -106,7 +107,49 @@
                   metrics_path: '/metrics'
                   static_configs:
                     - targets: ['dvga-service.default.svc.cluster.local:5013']
-
+                    
     - name: Restart Prometheus StatefulSet to apply ConfigMap
       command: >
         kubectl rollout restart statefulset prometheus-prometheus-kube-prometheus-prometheus -n prometheus
+
+    - name: Vérifier les vulnérabilités critiques dans Prometheus
+      command: |
+        curl -s http://prometheus-prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090/api/v1/query \
+        --data-urlencode 'query=ALERTS{alertstate="firing"}'
+      register: prometheus_alerts
+
+
+    - name: Envoyer les alertes critiques à Discord
+      when: prometheus_alerts.stdout.find('severity="critical"') != -1
+      ansible.builtin.uri:
+        url: "{{ discord_webhook_url }}"
+        method: POST
+        body_format: json
+        body:
+          content: |
+            🚨 **Alerte Critique Détectée !**
+            Détails : {{ prometheus_alerts.stdout }}
+
+    - name: Envoyer les alertes warning à Discord
+      when: prometheus_alerts.stdout.find('severity="warning"') != -1
+      ansible.builtin.uri:
+        url: "{{ discord_webhook_url }}"
+        method: POST
+        body_format: json
+        body:
+          content: |
+            ⚠️ **Alerte Warning Détectée !**
+            Détails : {{ prometheus_alerts.stdout }}
+
+
+    - name: Envoyer les alertes info à Discord
+      when: prometheus_alerts.stdout.find('severity="info"') != -1
+      ansible.builtin.uri:
+        url: "{{ discord_webhook_url }}"
+        method: POST
+        body_format: json
+        body:
+          content: |
+            ℹ️ **Alerte Informationnelle Détectée !**
+            Détails : {{ prometheus_alerts.stdout }}
+
