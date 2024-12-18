@@ -84,6 +84,7 @@
             labels:
               app: dvga
           spec:
+            type: LoadBalancer
             selector:
               app: dvga
             ports:
