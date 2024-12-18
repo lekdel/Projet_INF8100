@@ -25,7 +25,6 @@ app.app_protocol = lambda environ_path_info: 'graphql-ws'
 
 db = SQLAlchemy(app)
 
-# Prometheus Metrics
 metrics = PrometheusMetrics(app)
 
 # Static information
@@ -55,6 +54,11 @@ def long_running():
     time.sleep(5)  # simulate long processing
     return 'This request took a long time!'
 
+@app.route('/metrics')
+def metrics_endpoint():
+    from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+    return generate_latest(), 200, {'Content-Type': CONTENT_TYPE_LATEST}
+
 @app.route('/status/<int:status>')
 @metrics.do_not_track()
 @metrics.summary('requests_by_status', 'Request latencies by status',
@@ -73,6 +77,6 @@ if __name__ == '__main__':
     from geventwebsocket.handler import WebSocketHandler
     from version import VERSION
 
-    server = pywsgi.WSGIServer((config.WEB_HOST, int(config.WEB_PORT)), app, handler_class=WebSocketHandler)
+    server = pywsgi.WSGIServer(('0.0.0.0', int(config.WEB_PORT)), app, handler_class=WebSocketHandler)
     print("DVGA Server Version: {version} Running...".format(version=VERSION))
     server.serve_forever()
