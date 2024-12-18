@@ -9,7 +9,6 @@ from flask_graphql_auth import GraphQLAuth
 from prometheus_flask_exporter import PrometheusMetrics
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
-# Initialisation de l'application Flask
 app = Flask(__name__, static_folder="static/")
 app.secret_key = os.urandom(24)
 app.config["SQLALCHEMY_DATABASE_URI"] = config.SQLALCHEMY_DATABASE_URI
