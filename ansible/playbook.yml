@@ -83,3 +83,37 @@
       kubernetes.core.k8s:
         kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
         definition: "{{ lookup('file', 'dvga-servicemonitor.yaml') }}"
+        
+    - name: Create ConfigMap for Prometheus
+      kubernetes.core.k8s:
+        kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
+        state: present
+        definition:
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: prometheus-config
+            namespace: prometheus
+          data:
+            prometheus.yml: |
+              global:
+                scrape_interval: 15s
+              scrape_configs:
+                - job_name: 'prometheus'
+                  static_configs:
+                    - targets: ['localhost:9090']
+                - job_name: 'dvga-metrics'
+                  metrics_path: '/metrics'
+                  static_configs:
+                    - targets: ['dvga-service.default.svc.cluster.local:5013']
+
+    - name: Restart Prometheus Deployment to apply ConfigMap
+      kubernetes.core.k8s:
+        kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
+        state: restarted
+        definition:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: prometheus-kube-prometheus-prometheus
+            namespace: prometheus
