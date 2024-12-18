@@ -111,45 +111,38 @@
     - name: Restart Prometheus StatefulSet to apply ConfigMap
       command: >
         kubectl rollout restart statefulset prometheus-prometheus-kube-prometheus-prometheus -n prometheus
-
+    
     - name: Vérifier les vulnérabilités critiques dans Prometheus
-      command: |
-        curl -s http://prometheus-prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090/api/v1/query \
+      command: >
+        curl -s http://4.172.126.83:9090/api/v1/query
         --data-urlencode 'query=ALERTS{alertstate="firing"}'
       register: prometheus_alerts
+      failed_when: prometheus_alerts.rc != 0
+
+    - name: Analyser les résultats de Prometheus
+      set_fact:
+        alert_results: "{{ prometheus_alerts.stdout | from_json }}"
+
+    - name: Envoyer une alerte Discord pour chaque alerte
+      when: alert_results.status == 'success' and alert_results.data.result | length > 0
+      loop: "{{ alert_results.data.result }}"
+      vars:
+        alert: "{{ item.metric }}"
+      run_once: true
+      block:
+        - name: Construire le message d'alerte
+          set_fact:
+            discord_message: |
+              🚨 **Alerte détectée : {{ alert.alertname }}**
+              - État : {{ alert.alertstate }}
+              - Gravité : {{ alert.severity }}
+              - Détails : {{ alert }}
+        - name: Envoyer une alerte à Discord
+          community.general.slack:
+            token: "{{ discord_webhook_url }}"
+            msg: "{{ discord_message }}"
 
 
-    - name: Envoyer les alertes critiques à Discord
-      when: prometheus_alerts.stdout.find('severity="critical"') != -1
-      ansible.builtin.uri:
-        url: "{{ discord_webhook_url }}"
-        method: POST
-        body_format: json
-        body:
-          content: |
-            🚨 **Alerte Critique Détectée !**
-            Détails : {{ prometheus_alerts.stdout }}
-
-    - name: Envoyer les alertes warning à Discord
-      when: prometheus_alerts.stdout.find('severity="warning"') != -1
-      ansible.builtin.uri:
-        url: "{{ discord_webhook_url }}"
-        method: POST
-        body_format: json
-        body:
-          content: |
-            ⚠️ **Alerte Warning Détectée !**
-            Détails : {{ prometheus_alerts.stdout }}
 
 
-    - name: Envoyer les alertes info à Discord
-      when: prometheus_alerts.stdout.find('severity="info"') != -1
-      ansible.builtin.uri:
-        url: "{{ discord_webhook_url }}"
-        method: POST
-        body_format: json
-        body:
-          content: |
-            ℹ️ **Alerte Informationnelle Détectée !**
-            Détails : {{ prometheus_alerts.stdout }}
 
