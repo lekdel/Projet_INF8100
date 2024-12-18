@@ -4,8 +4,8 @@
   vars:
     ansible_python_interpreter: /usr/bin/python3
     docker_image_name: "{{ lookup('env', 'DOCKER_IMAGE_NAME') }}"
-    discord_webhook_url: "https://discord.com/api/webhooks/1318826170195771464/3RBh-1M9-j8rfAQPMJeVWLukeyWd9hxONyJr7N8kJxL5aa0Zw_f88m3f1ji4coe89sVy"
-
+    discord_webhook_url: " ${{ secrets.DISCORD_WEBHOOK_URL }}"
+    
   tasks:
     - name: Ensure the default namespace exists
       kubernetes.core.k8s:

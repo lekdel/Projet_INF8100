@@ -91,7 +91,7 @@ jobs:
         if: failure()
         run: |
           curl -H "Content-Type: application/json" \
-          -d '{"content": "❗ **Docker Scout** a détecté des vulnérabilités critiques dans l''image Docker."}' \
+          -d '{"content": "❗ **Docker Scout** a détecté des vulnérabilités critiques dans l'image Docker."}' \
           ${{ secrets.DISCORD_WEBHOOK_URL }}  
 
   trivy:
@@ -121,10 +121,10 @@ jobs:
         with:
           name: trivy-report
           path: trivy-report.json
-          
+
       - name: Send vulnerability alert to Discord
         if: failure()
         run: |
           curl -H "Content-Type: application/json" \
-          -d '{"content": "❗ **Trivy** a détecté des vulnérabilités dans l''image Docker ! Vérifiez le rapport pour plus de détails."}' \
+          -d '{"content": "❗ **Trivy** a détecté des vulnérabilités dans l'image Docker ! Vérifiez le rapport pour plus de détails."}' \
           ${{ secrets.DISCORD_WEBHOOK_URL }}
