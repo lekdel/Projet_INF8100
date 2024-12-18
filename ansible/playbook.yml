@@ -33,7 +33,7 @@
               type: ClusterIP
           grafana:
             service:
-              type: LoadBalancer
+              type: ClusterIP
 
     - name: Définir un ResourceQuota pour limiter les ressources dans le namespace
       kubernetes.core.k8s:
