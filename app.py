@@ -7,8 +7,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_sockets import Sockets
 from flask_graphql_auth import GraphQLAuth
 from prometheus_flask_exporter import PrometheusMetrics
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
-# Initialisation de l'application Flask
 app = Flask(__name__, static_folder="static/")
 app.secret_key = os.urandom(24)
 app.config["SQLALCHEMY_DATABASE_URI"] = config.SQLALCHEMY_DATABASE_URI
@@ -46,6 +46,11 @@ def skip():
                  labels={'item_type': lambda: request.view_args['item_type']})
 def by_type(item_type):
     return f'Item type: {item_type}'  # only the counter is collected, not default metrics
+  
+
+@app.route('/metrics')
+def metrics_endpoint():
+    return generate_latest(), 200, {'Content-Type': CONTENT_TYPE_LATEST}
 
 @app.route('/long-running')
 @metrics.gauge('in_progress', 'Long running requests in progress')
@@ -53,11 +58,6 @@ def long_running():
     import time
     time.sleep(5)  # simulate long processing
     return 'This request took a long time!'
-
-@app.route('/metrics')
-def metrics_endpoint():
-    from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
-    return generate_latest(), 200, {'Content-Type': CONTENT_TYPE_LATEST}
 
 @app.route('/status/<int:status>')
 @metrics.do_not_track()
