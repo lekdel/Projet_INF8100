@@ -83,7 +83,7 @@
       kubernetes.core.k8s:
         kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
         definition: "{{ lookup('file', 'dvga-servicemonitor.yaml') }}"
-        
+
     - name: Create ConfigMap for Prometheus
       kubernetes.core.k8s:
         kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
@@ -108,12 +108,5 @@
                     - targets: ['dvga-service.default.svc.cluster.local:5013']
 
     - name: Restart Prometheus Deployment to apply ConfigMap
-      kubernetes.core.k8s:
-        kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
-        state: restarted
-        definition:
-          apiVersion: apps/v1
-          kind: Deployment
-          metadata:
-            name: prometheus-kube-prometheus-prometheus
-            namespace: prometheus
+      command: >
+        kubectl rollout restart deployment prometheus-kube-prometheus-prometheus -n prometheus
