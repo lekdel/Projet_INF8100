@@ -30,7 +30,7 @@
         values:
           prometheus:
             service:
-              type: LoadBalancer
+              type: ClusterIP
           grafana:
             service:
               type: LoadBalancer
