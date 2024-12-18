@@ -1,3 +1,4 @@
+
 # Log8100-project
 
 ## Quelques points à savoir
@@ -10,6 +11,7 @@ l'installation et la configuration de l'image docker y sont expliqués.
 
 - Un compte Azure
 - Un compte Docker
+- Une paire de clés SSH pour accéder aux machines virtuelles Azure.
 - `SonarQube Cloud`
 - `Snyk`
 - `Docker Scout`
@@ -20,13 +22,58 @@ l'installation et la configuration de l'image docker y sont expliqués.
 - `Kubectl`
 
 ## Étapes du Pipeline CI/CD
+
 ### Pipeline d'intégration continue (ci.yaml)
 1. Analyse du code avec SonarCloud
 2. Analyse des dépendances avec Snyk
 3. Construire et push l'image de l'application
 4. Analyse de l'image avec Docker Scout
 5. Analyse de l'IaC avec Trivy
+
 ### Pipeline de déploiement continue (cd.yaml)
+
+
+
+## Configuration du cluster kubernetes
+
+### Structure de l'infrastructure Terraform
+
+Cette infrastructure est constituée des fichiers: 
+- `main.tf`: dans lequel nous indiquons la configuration principale du cluster k8s:
+    - Nom du cluster
+    - nom du groupe de ressource
+    - configuration du manager de ressource (azurerm) avec les variables: 
+    ``` 
+    subscription_id
+    client_id
+    client_secret
+    tenant_id
+    ```
+- `variables.tf`: Il s'agit du fichier dans lequel nous définissons toutes nos variables 
+
+- `modules/cluster`: Il s'agit du dossier qui s'occupe de la configuration de bas niveau de notre cluster et est composé de: 
+    - `cluster.tf`: Le fichier de configuration des VMs de notre cluster possédant: 
+    ``` 
+    - azurerm_kubernetes_cluster # Congiguration de haut générale du cluster (nom, localtion groupe de resources, etc)
+    - default_node_pool  # configuration du groupe de noeud ( nombre, type de vm, taille de vm, taille de disque)
+    - linux_profile # Pour permettre la conexion vers la vm
+    - network_profile
+    ```
+    - `variables.tf`: Il s'agit du fichier dans lequel nous définissons toutes nos variables pour notre cluster
+### Configuration Ansible 
+Nous avons cré un fichier playbook.yml pour l'orchestration des nœuds avec ansible
+
+### Automatisation de la création du cluster
+
+Avec la configuration terraform, on peut automatiser la création des clusters avec les commandes: 
+
+```
+terraform init
+terraform apply 
+```
+
+Ensuite le playbook ansible va s'occuper de l'orchestration et du déploiement de notre application.
+
 
 ## Installation de terraform
 
@@ -106,3 +153,4 @@ kubectl get nodes -o wide
 kubectl get pods -A -o wide
 
 ```
+
