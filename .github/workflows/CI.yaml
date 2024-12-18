@@ -91,7 +91,7 @@ jobs:
         if: failure()
         run: |
           curl -H "Content-Type: application/json" \
-          -d '{"content": "❗ **Docker Scout** a détecté des vulnérabilités critiques dans l'image Docker."}' \
+          -d '{"content": "❗ **Docker Scout** a détecté des vulnérabilités critiques dans l''image Docker."}' \
           ${{ secrets.DISCORD_WEBHOOK_URL }}  
 
   trivy:

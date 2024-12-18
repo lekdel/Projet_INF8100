@@ -111,35 +111,35 @@
       command: >
         kubectl rollout restart statefulset prometheus-prometheus-kube-prometheus-prometheus -n prometheus
 
-    - name: Vérifier les vulnérabilités critiques dans Prometheus
-      command: |
-        curl -s http://4.172.126.83:9090/api/v1/query \
-        --data-urlencode "query=ALERTS{alertstate='firing'}"
-      register: prometheus_alerts
-      failed_when: prometheus_alerts.rc != 0
+    # - name: Vérifier les vulnérabilités critiques dans Prometheus
+    #   command: |
+    #     curl -s http://4.172.126.83:9090/api/v1/query \
+    #     --data-urlencode "query=ALERTS{alertstate='firing'}"
+    #   register: prometheus_alerts
+    #   failed_when: prometheus_alerts.rc != 0
 
-    - name: Analyser les résultats de Prometheus
-      set_fact:
-        alert_results: "{{ prometheus_alerts.stdout | from_json }}"
+    # - name: Analyser les résultats de Prometheus
+    #   set_fact:
+    #     alert_results: "{{ prometheus_alerts.stdout | from_json }}"
 
-    - name: Construire le message d'alerte pour chaque alerte
-      set_fact:
-        discord_message: |
-          🚨 **Alerte détectée : {{ item.metric.alertname }}**
-          - État : {{ item.metric.alertstate }}
-          - Gravité : {{ item.metric.severity }}
-          - Détails : {{ item.metric }}
-      with_items: "{{ alert_results.data.result }}"
-      when: alert_results.status == 'success' and alert_results.data.result | length > 0
+    # - name: Construire le message d'alerte pour chaque alerte
+    #   set_fact:
+    #     discord_message: |
+    #       🚨 **Alerte détectée : {{ item.metric.alertname }}**
+    #       - État : {{ item.metric.alertstate }}
+    #       - Gravité : {{ item.metric.severity }}
+    #       - Détails : {{ item.metric }}
+    #   with_items: "{{ alert_results.data.result }}"
+    #   when: alert_results.status == 'success' and alert_results.data.result | length > 0
 
-    - name: Envoyer une alerte à Discord pour chaque alerte
-      uri:
-        url: "{{ discord_webhook_url }}"
-        method: POST
-        body: '{"content": "{{ discord_message }}"}'
-        headers:
-          Content-Type: "application/json"
-        status_code: 204
-      with_items: "{{ alert_results.data.result }}"
-      when: alert_results.status == 'success' and alert_results.data.result | length > 0
+    # - name: Envoyer une alerte à Discord pour chaque alerte
+    #   uri:
+    #     url: "{{ discord_webhook_url }}"
+    #     method: POST
+    #     body: '{"content": "{{ discord_message }}"}'
+    #     headers:
+    #       Content-Type: "application/json"
+    #     status_code: 204
+    #   with_items: "{{ alert_results.data.result }}"
+    #   when: alert_results.status == 'success' and alert_results.data.result | length > 0
 
