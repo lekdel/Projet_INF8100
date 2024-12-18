@@ -122,25 +122,24 @@
       set_fact:
         alert_results: "{{ prometheus_alerts.stdout | from_json }}"
 
-    - name: Envoyer une alerte Discord pour chaque alerte
-      when: alert_results.status == 'success' and alert_results.data.result | length > 0
+    - name: Construire le message d'alerte pour chaque alerte
+      set_fact:
+        discord_message: |
+          🚨 **Alerte détectée : {{ item.metric.alertname }}**
+          - État : {{ item.metric.alertstate }}
+          - Gravité : {{ item.metric.severity }}
+          - Détails : {{ item.metric }}
       with_items: "{{ alert_results.data.result }}"
-      vars:
-        alert: "{{ item.metric }}"
-      block:
-        - name: Construire le message d'alerte
-          set_fact:
-            discord_message: |
-              🚨 **Alerte détectée : {{ alert.alertname }}**
-              - État : {{ alert.alertstate }}
-              - Gravité : {{ alert.severity }}
-              - Détails : {{ alert }}
+      when: alert_results.status == 'success' and alert_results.data.result | length > 0
 
-        - name: Envoyer une alerte à Discord
-          uri:
-            url: "{{ discord_webhook_url }}"
-            method: POST
-            body: '{"content": "{{ discord_message }}"}'
-            headers:
-              Content-Type: "application/json"
-            status_code: 204
+    - name: Envoyer une alerte à Discord pour chaque alerte
+      uri:
+        url: "{{ discord_webhook_url }}"
+        method: POST
+        body: '{"content": "{{ discord_message }}"}'
+        headers:
+          Content-Type: "application/json"
+        status_code: 204
+      with_items: "{{ alert_results.data.result }}"
+      when: alert_results.status == 'success' and alert_results.data.result | length > 0
+
