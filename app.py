@@ -9,7 +9,10 @@ from flask_graphql_auth import GraphQLAuth
 from prometheus_flask_exporter import PrometheusMetrics
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from prometheus_client import CollectorRegistry
-
+from core.views import *
+from gevent import pywsgi
+from geventwebsocket.handler import WebSocketHandler
+from version import VERSION
 
 app = Flask(__name__, static_folder="static/")
 app.secret_key = os.urandom(24)
@@ -74,11 +77,6 @@ def echo_status(status):
 if __name__ == '__main__':
     sys.setrecursionlimit(100000)
     os.popen("python3 setup.py").read()
-
-    from core.views import *
-    from gevent import pywsgi
-    from geventwebsocket.handler import WebSocketHandler
-    from version import VERSION
 
     server = pywsgi.WSGIServer(('0.0.0.0', int(config.WEB_PORT)), app, handler_class=WebSocketHandler)
     print("DVGA Server Version: {version} Running...".format(version=VERSION))
