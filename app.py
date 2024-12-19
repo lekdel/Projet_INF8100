@@ -8,6 +8,8 @@ from flask_sockets import Sockets
 from flask_graphql_auth import GraphQLAuth
 from prometheus_flask_exporter import PrometheusMetrics
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import CollectorRegistry
+
 
 app = Flask(__name__, static_folder="static/")
 app.secret_key = os.urandom(24)
@@ -27,8 +29,9 @@ db = SQLAlchemy(app)
 
 metrics = PrometheusMetrics(app)
 
-# Static information
-metrics.info('app_info', 'Application info', version='1.0.3')
+# Vérifier si la métrique est déjà enregistrée
+if 'app_info' not in CollectorRegistry()._names_to_collectors:
+    metrics.info('app_info', 'Application info', version='1.0.3')
 
 # Example routes to track metrics
 @app.route('/')
