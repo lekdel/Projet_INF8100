@@ -1,6 +1,7 @@
 import graphene
 
 from graphql import GraphQLError
+from prometheus_client import start_http_server, Summary, Counter, generate_latest, REGISTRY
 
 from core import (
   security,
@@ -450,6 +451,17 @@ def difficulty(level):
 
   return render_template('index.html', msg = message)
 
+REQUEST_TIME = Summary('request_processing_seconds', 'Time spent processing request')
+REQUEST_COUNT = Counter('request_count', 'Total requests')
+
+@REQUEST_TIME.time()
+@app.route('/metrics')
+def metrics():
+    return generate_latest(REGISTRY), 200, {'Content-Type': 'text/plain; version=0.0.4; charset=utf-8'}
+
+@app.before_request
+def before_request():
+    REQUEST_COUNT.inc()
 
 @app.context_processor
 def get_difficulty():

@@ -36,7 +36,6 @@ if __name__ == '__main__':
 
   #server = pywsgi.WSGIServer((config.WEB_HOST, int(config.WEB_PORT)), app, handler_class=WebSocketHandler)
   server = pywsgi.WSGIServer(('0.0.0.0', int(config.WEB_PORT)), app, handler_class=WebSocketHandler)
-
   print("DVGA Server Version: {version} Running...".format(version=VERSION))
   server.serve_forever()
   
