@@ -69,6 +69,7 @@
                 containers:
                   - name: dvga-container
                     image: "{{ docker_image_name }}:latest"
+                    imagePullPolicy: Always
                     ports:
                       - containerPort: 5013  
 
