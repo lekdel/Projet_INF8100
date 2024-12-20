@@ -140,7 +140,7 @@
       kubernetes.core.k8s:
         kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
         definition: "{{ lookup('file', 'dvga-servicemonitor.yaml') }}"
-        create_namespace: true
+        kind: Namespace
 
 
     - name: Create ConfigMap for Prometheus
