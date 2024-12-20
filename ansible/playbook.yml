@@ -4,7 +4,7 @@
   vars:
     ansible_python_interpreter: /usr/bin/python3
     docker_image_name: "{{ lookup('env', 'DOCKER_IMAGE_NAME') }}"
-    discord_webhook_url: "{{ lookup('env', 'DISCORD_WEBHOOK_URL') }}"  
+    discord_webhook_url: "{{ lookup('env', 'DISCORD_WEBHOOK_URL') }}"
 
   tasks:
     - name: Ensure the default namespace exists
@@ -71,7 +71,7 @@
                     image: "{{ docker_image_name }}:latest"
                     imagePullPolicy: Always
                     ports:
-                      - containerPort: 5013  
+                      - containerPort: 5013
 
     - name: Create Service for dvga
       kubernetes.core.k8s:
@@ -92,6 +92,26 @@
               - name: http
                 port: 5013
                 targetPort: 5013
+    - name: Install NGINX Ingress Controller
+      kubernetes.core.k8s:
+        kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: ingress-nginx
+    - name: Add NGINX Ingress Controller repo
+      kubernetes.core.helm_repository:
+        name: ingress-nginx
+        repo_url: https://kubernetes.github.io/ingress-nginx
+    - name: Install NGINX Ingress Controller
+      kubernetes.core.helm:
+        name: ingress-nginx
+        chart_ref: ingress-nginx/ingress-nginx
+        release_namespace: ingress-nginx
+        create_namespace: true
+
     - name: Create Ingress for dvga
       kubernetes.core.k8s:
         kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
@@ -179,4 +199,3 @@
     #     status_code: 204
     #   with_items: "{{ alert_results.data.result }}"
     #   when: alert_results.status == 'success' and alert_results.data.result | length > 0
-
