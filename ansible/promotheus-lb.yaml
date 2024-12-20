@@ -4,7 +4,7 @@ metadata:
   name: projet-log-8100-lb-prometheus
 spec:
   selector: 
-    app: dvga
+    service: prometheus
   ports:
   - port: 80
     targetPort: 8080

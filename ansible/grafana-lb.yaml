@@ -4,7 +4,7 @@ metadata:
   name: projet-log-8100-lb-grafana
 spec:
   selector: 
-    app: dvga
+    service: service
   ports:
   - port: 80
     targetPort: 80
