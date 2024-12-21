@@ -34,7 +34,7 @@
           grafana:
             service:
               type: ClusterIP
-
+              
     - name: Définir un ResourceQuota pour limiter les ressources dans le namespace
       kubernetes.core.k8s:
         kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
@@ -46,6 +46,19 @@
         kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
         state: present
         definition: "{{ lookup('file', 'limit-range.yaml') }}"
+    
+    - name: Expose dvga app
+      kubernetes.core.k8s:
+        kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
+        state: present
+        definition: "{{ lookup('file', 'dvga-lb.yaml') }}"
+
+    - name: Expose Grafana
+      kubernetes.core.k8s:
+        kubeconfig: "{{ lookup('env', 'KUBECONFIG') }}"
+        state: present
+        definition: "{{ lookup('file', 'grafana-lb.yaml') }}"
+        
 
     - name: Create deployment
       kubernetes.core.k8s:
